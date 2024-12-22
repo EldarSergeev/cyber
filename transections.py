@@ -1,0 +1,35 @@
+from db_tools import *    
+host = '127.0.0.1'
+print("____1____")
+mydb = init()
+print("____2____")
+create_database(mydb, "mysql")
+print("____3____")
+dbs = show_databases(mydb)    
+print(dbs)
+print("____4____")
+mydb_db = init_with_db("mysql")
+print("____5____")
+tables = show_tables(mydb_db)
+print(tables)
+print("____5____")
+create_table(mydb_db, "transections",
+                 "(src_id INT, timeset VARCHAR(255), is_succeded VARCHAR(255), trans_id INT, char_1 VARCHAR(255), char_2 VARCHAR(255), char_3 VARCHAR(255), char_4 VARCHAR(255), char_5 VARCHAR(255))")
+# TODO: create other tables HERE! Noah :)
+print("____6____")
+delete_table(mydb_db, "component")
+tables = show_tables(mydb_db)
+print(tables)
+print("____7____")
+print(get_all_rows(mydb_db, "transections"))
+print("____8____")
+insert_row(mydb_db, "transections",
+                 "(src_id, timeset, is_succeded ,trans_id ,char_1 ,char_2 ,char_3, char_4 ,char_5 )",
+                 "(%s, %s, %s, %s, %s, %s, %s, %s, %s )",
+                 (1, "14:30:57", "true",7 ,"e" ,"l", "d", "a", "r" ))
+print("____9____")
+print(get_all_rows(mydb_db, "transections"))
+print("___________10_________")
+#delete_row(mydb_db, "users", "id", "1")
+print("____11____")
+print(get_all_rows(mydb_db, "transections"))
