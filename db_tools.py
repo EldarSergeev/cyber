@@ -113,3 +113,17 @@ def get_rows_from_table_with_value(mydb, tableName, columnName, columnValue):
     else:
         print("No column name with name "+ tableName)
 
+def update_value(mydb, tableName, columnName, newValue, conditionColumn, conditionValue):
+    mycursor = mydb.cursor()
+    tables = show_tables(mydb)
+    if tableName in tables:
+        sql = f"UPDATE {tableName} SET {columnName} = %s WHERE {conditionColumn} = %s"
+        values = (newValue, conditionValue)
+        print(sql, values)
+        mycursor.execute(sql, values)
+        mydb.commit()
+        print(mycursor.rowcount, "record(s) affected")
+    else:
+        print("No table exists with name " + tableName)
+
+

@@ -1,5 +1,32 @@
 import socket
 import threading
+from db_tools import *    
+
+host = '127.0.0.1'
+mydb = init()
+create_database(mydb, "mysql")
+mydb_db = init_with_db("mysql")
+create_table(mydb_db, "data_user",
+                 "(id INT, ip VARCHAR(255), port INT, Isblacklisted TINYINT(1),Connections_per_day INT )")
+create_table(mydb_db, "transections",
+                 "(src_id INT, timeset VARCHAR(255), password VARCHAR(255), is_succeded TINYINT(1), trans_id INT, char_1 VARCHAR(255), char_2 VARCHAR(255), char_3 VARCHAR(255), char_4 VARCHAR(255), char_5 VARCHAR(255))")
+
+
+
+
+def handle_client_request(message, password):
+    if message!="request":
+        try:
+            result = [c for c in message if c != ' ']
+            if len(result)>5:
+                raise Exception("your message is too long")
+        finally:
+            
+
+
+
+
+
 
 # Function to handle client communication
 def handle_client(client_socket):
