@@ -14,14 +14,25 @@ create_table(mydb_db, "transections",
 
 
 
-def handle_client_request(message, password):
-    if message!="request":
+def handle_client_request( client_socket,client_id):
+    if client_socket.recv().decode('utf-8')!="request":
         try:
-            result = [c for c in message if c != ' ']
+            result = [c for c in client_socket.decode(1024) if c != ' ']
             if len(result)>5:
                 raise Exception("your message is too long")
+        except Exception as e:
+            client_socket.send(f"Error in expression: {e}".encode('utf-8'))
         finally:
-            
+            client_socket.send(("enter the password for your message").encode('utf-8'))
+            password=client_socket.recv(1024).decode('utf-8')
+            update_value(mydb_db,"transections","password",password,"src_id",client_id)
+            update_value(mydb_db,"transections","char_1",result[0],"src_id",client_id)
+            update_value(mydb_db,"transections","char_2",result[1],"src_id",client_id)
+            update_value(mydb_db,"transections","char_3",result[2],"src_id",client_id)
+            update_value(mydb_db,"transections","char_4",result[3],"src_id",client_id)
+            update_value(mydb_db,"transections","char_5",result[4],"src_id",client_id)
+
+
 
 
 
