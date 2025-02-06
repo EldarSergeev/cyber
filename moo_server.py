@@ -13,8 +13,10 @@ create_table(mydb_db, "transections",
 
 
 
-
+#function to handle client reqests recives the client's socket and id
 def handle_client_request( client_socket,client_id):
+    #extracts the clients message from the socket
+    #if the message doesnt equal to "request" it checks for errors and inserets the message and clients info into the transections data table
     if client_socket.recv().decode('utf-8')!="request":
         try:
             result = [c for c in client_socket.decode(1024) if c != ' ']
@@ -25,12 +27,10 @@ def handle_client_request( client_socket,client_id):
         finally:
             client_socket.send(("enter the password for your message").encode('utf-8'))
             password=client_socket.recv(1024).decode('utf-8')
-            update_value(mydb_db,"transections","password",password,"src_id",client_id)
-            update_value(mydb_db,"transections","char_1",result[0],"src_id",client_id)
-            update_value(mydb_db,"transections","char_2",result[1],"src_id",client_id)
-            update_value(mydb_db,"transections","char_3",result[2],"src_id",client_id)
-            update_value(mydb_db,"transections","char_4",result[3],"src_id",client_id)
-            update_value(mydb_db,"transections","char_5",result[4],"src_id",client_id)
+            insert_row(mydb_db, "transections",
+                 "(src_id, timeset, password, is_succeded ,trans_id ,char_1 ,char_2 ,char_3, char_4 ,char_5 )",
+                 "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                 (client_id, "", password, 0 ,0 ,result[0] ,result[1], result[2], result[3],result[4]  ))
 
 
 
