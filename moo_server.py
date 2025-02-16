@@ -10,7 +10,8 @@ create_table(mydb_db, "data_user",
                  "(id INT, ip VARCHAR(255), port INT, Isblacklisted TINYINT(1),Connections_per_day INT )")
 create_table(mydb_db, "transections",
                  "(src_id INT, timeset VARCHAR(255), password VARCHAR(255), is_succeded TINYINT(1), trans_id INT, char_1 VARCHAR(255), char_2 VARCHAR(255), char_3 VARCHAR(255), char_4 VARCHAR(255), char_5 VARCHAR(255))")
-
+def id_stamp(client_socket,client_adress):
+    
 
 
 #function to handle client reqests recives the client's socket and id
@@ -37,8 +38,16 @@ def handle_client_request(client_socket,client_id):
         if get_rows_from_table_with_value(mydb_db,"transections","password",password):
             update_value(mydb_db,"transections","trans_id",client_id,"password",password)
             #need to add a function that stamps the time of transection and updates is
-            update_value(mydb_db,"transections","is_succeded",1,"password",password)          
-            client_socket.send((get_rows_from_table_with_value(mydb_db,"transections","password",password)[5]))
+            update_value(mydb_db,"transections","is_succeded",1,"password",password)  
+            chr1=get_rows_from_table_with_value(mydb_db,"transections","password",password)[5]
+            chr2=get_rows_from_table_with_value(mydb_db,"transections","password",password)[6]
+            chr3=get_rows_from_table_with_value(mydb_db,"transections","password",password)[7]
+            chr4=get_rows_from_table_with_value(mydb_db,"transections","password",password)[8]
+            chr5=get_rows_from_table_with_value(mydb_db,"transections","password",password)[9]
+            message=chr1+chr2+chr3+chr4+chr5
+
+
+            client_socket.send(message)
         else:
             client_socket.send(("wrong password try again").encode('utf-8'))
 
