@@ -11,7 +11,12 @@ create_table(mydb_db, "data_user",
 create_table(mydb_db, "transections",
                  "(src_id INT, timeset VARCHAR(255), password VARCHAR(255), is_succeded TINYINT(1), trans_id INT, char_1 VARCHAR(255), char_2 VARCHAR(255), char_3 VARCHAR(255), char_4 VARCHAR(255), char_5 VARCHAR(255))")
 def id_stamp(client_socket,client_adress):
-    
+    if get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1]):
+        if get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1])[3]==1:
+            client_socket.send(("your banned from the server connection termenaited").encode('utf-8'))
+        else:
+            return get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1])[0]
+    else:
 
 
 #function to handle client reqests recives the client's socket and id
