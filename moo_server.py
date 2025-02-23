@@ -1,5 +1,6 @@
 import socket
 import threading
+import random
 from db_tools import *    
 
 host = '127.0.0.1'
@@ -17,6 +18,15 @@ def id_stamp(client_socket,client_adress):
         else:
             return get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1])[0]
     else:
+        id=random.randint(1, 10000)
+        while get_rows_from_table_with_value(mydb_db,"data_user","id",id):
+            id=random.randint(1, 10000)
+        insert_row(mydb_db, "data_user",
+                 "(id, ip, port ,Isblacklisted ,Connections_per_day )",
+                 "(%s, %s, %s, %s, %s )",
+                 (id, client_adress[0], client_adress[1] ,0 ,1 ))
+        return id 
+        
 
 
 #function to handle client reqests recives the client's socket and id
@@ -66,12 +76,10 @@ def handle_client_request(client_socket,client_id):
 
 
 # Function to handle client communication
-def handle_client(client_socket):
+def handle_client(client_socket,client_address):
     try:
         # Receive the expression from the client
-        data = client_socket.recv(1024).decode('utf-8')
-        if not data:
-            return
+        
         
         # Try to evaluate the math expression
         try:
@@ -96,7 +104,7 @@ def start_server(host='127.0.0.1', port=5555):
         print(f"Connection from {client_address}")
         
         # Create a new thread to handle the client request
-        client_handler = threading.Thread(target=handle_client, args=(client_socket,))
+        client_handler = threading.Thread(target=handle_client, args=(client_socket, client_address))
         client_handler.start()
 
 if __name__ == "__main__":
