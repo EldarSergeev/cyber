@@ -2,16 +2,11 @@ import socket
 import threading
 import random
 from db_tools import *    
+from tools import *
 
-host = '127.0.0.1'
-mydb = init()
-create_database(mydb, "mysql")
-mydb_db = init_with_db("mysql")
-create_table(mydb_db, "data_user",
-                 "(id INT, ip VARCHAR(255), port INT, Isblacklisted TINYINT(1),Connections_per_day INT )")
-create_table(mydb_db, "transections",
-                 "(src_id INT, timeset VARCHAR(255), password VARCHAR(255), is_succeded TINYINT(1), trans_id INT, char_1 VARCHAR(255), char_2 VARCHAR(255), char_3 VARCHAR(255), char_4 VARCHAR(255), char_5 VARCHAR(255))")
-def id_stamp(client_socket,client_adress):
+
+
+def id_stamp(mydb_db, client_socket,client_adress):
     if get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1]):
         if get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1])[3]==1:
             client_socket.send(("your banned from the server connection termenaited").encode('utf-8'))
@@ -21,6 +16,7 @@ def id_stamp(client_socket,client_adress):
         id=random.randint(1, 10000)
         while get_rows_from_table_with_value(mydb_db,"data_user","id",id):
             id=random.randint(1, 10000)
+
         insert_row(mydb_db, "data_user",
                  "(id, ip, port ,Isblacklisted ,Connections_per_day )",
                  "(%s, %s, %s, %s, %s )",
@@ -31,9 +27,12 @@ def id_stamp(client_socket,client_adress):
 
 #function to handle client reqests recives the client's socket and id
 def handle_client_request(client_socket,client_id):
+
+
+
     #extracts the clients message from the socket
     #if the message doesnt equal to "request" it checks for errors and inserets the message and clients info into the transections data table
-    if client_socket.recv().decode('utf-8')!="request":
+    if client_socket.recv().decode() !="STR":
         try:
             result = [c for c in client_socket.decode(1024) if c != ' ']
             if len(result)>5:
@@ -76,36 +75,94 @@ def handle_client_request(client_socket,client_id):
 
 
 # Function to handle client communication
-def handle_client(client_socket,client_address):
+def handle_client(db, client_socket,client_address):
     try:
-        # Receive the expression from the client
-        
-        
-        # Try to evaluate the math expression
-        try:
-            result = eval(data)  
-            client_socket.send(f"Result: {result}".encode('utf-8'))
-        except Exception as e:
-            client_socket.send(f"Error in expression: {e}".encode('utf-8'))
+        # receive option STR/GET
+        option = client_socket.recv(4).decode()
+        (ip, port) = client_address
+        all_clients = get_all_rows(db, "clients")
+        # for now client is identified by ip only
+        client_id = -1
+        for (id , client_ip , client_port, ddos_status , timestamp ) in all_clients:
+            if ip == client_ip: # found our client
+                client_id = id
+                delete_row(db, "clients", "client_id", id )
+                insert_row(db, "clients",
+                    "(client_id, ip, port, ddos_status, timestamp)",
+                    "(%s, %s, %s, %s, %s)",
+                    (id , client_ip , client_port, ddos_status , get_timstamp()))
+                break
+        if client_id == -1: # not found client - setting new one
+            insert_row(db, "clients",
+                    "(client_id, ip, port, ddos_status, timestamp)",
+                    "(%s, %s, %s, %s, %s)",
+                    (len(all_clients)+1 , ip , port, False , get_timstamp()))
+
+
+
+        if option == "STR":
+            data_size = int(client_socket.recv(10).decode())
+            all_transactions = get_all_rows(db, "transactions")
+            if len(all_transactions) == 0:
+                transaction_id = 1
+            else:
+                transaction_id = all_transactions[-1][0] + 1
+            chunk_id = 0
+            while data_size >= 1024 :
+                chunk_id = chunk_id + 1
+                data = client_socket.recv(1024).decode()
+                insert_row(db, "transcations",
+                              "(primary_trans_id , secondary_trans_id , client_id , timestamp , data_size , data )",
+                              "(%s, %s, %s, %s, %s, %s)",
+                              (transaction_id, chunk_id, client_id, get_timstamp(), 1024, data))
+            if data_size > 0 :
+                chunk_id = chunk_id +1
+                data = client_socket.recv(data_size).decode()
+                insert_row(db, "transcations",
+                              "(primary_trans_id , secondary_trans_id , client_id , timestamp , data_size , data )",
+                              "(%s, %s, %s, %s, %s, %s)",
+                              (transaction_id, chunk_id, client_id, get_timstamp(), data_size, data))
+            client_socket.send(str(transaction_id).encode())
+            
+        elif option == "GET":
+            pass
+        else :
+            print ("Unsupported option ", option)
     finally:
         # Close the connection after the transaction
         client_socket.close()
 
-# Set up the server
-def start_server(host='127.0.0.1', port=5555):
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((host, port))
-    server.listen(5)
-    print(f"Server listening on {host}:{port}...")
-    
-    while True:
-        # Accept new client connections
-        client_socket, client_address = server.accept()
-        print(f"Connection from {client_address}")
+
+def initialize_db():
+    mydb = init()
+    create_database(mydb, "mysql")
+    db = init_with_db("mysql")
+    create_table(db, "clients",
+                 "(client_id INT, ip VARCHAR(255), port INT, ddos_status BOOL, timestamp VARCHAR(255) )")
+    create_table(db, "transactions",
+                 "(primary_trans_id INT, secondary_trans_id INT client_id INT, timestamp VARCHAR(255), data_size INT, data VARCHAR(1024))")
+    return db
+
+
+
+class Server:
+    def __init__(self):
+        self.db =  initialize_db()
+    def start_server(self,  host='127.0.0.1', port=5555):
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind((host, port))
+        server.listen(5)
+        print(f"Server listening on {host}:{port}...")
         
-        # Create a new thread to handle the client request
-        client_handler = threading.Thread(target=handle_client, args=(client_socket, client_address))
-        client_handler.start()
+        while True:
+            # Accept new client connections
+            client_socket, client_address = server.accept()
+            print(f"Connection from {client_address}")
+            
+            # Create a new thread to handle the client request
+            client_handler = threading.Thread(target=handle_client, args=(self.db, client_socket, client_address))
+            client_handler.start()
 
 if __name__ == "__main__":
-    start_server()
+    s = Server()
+    s.start_server()

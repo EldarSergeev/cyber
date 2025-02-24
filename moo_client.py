@@ -1,19 +1,31 @@
 import socket
+from tools import *
+
+def send_file_data_and_get_transaction_id(server_socket):
+    send_string_file(server_socket, "secret_data1.txt")
+    print("received transaction_id", server_socket.recv(5).decode())
+
+def get_and_store_file_data(server_socket):
+    pass
 
 # Function to send a math expression to the server and get the result
-def request_math_result():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('127.0.0.1', 5555))  # Connect to the server
+def connect_to_server_and_store_info():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.connect(('127.0.0.1', 5555))  # Connect to the server
 
-    # Send the expression to the server
-    client.send(input("Enter a math expression (e.g., 3 + 5): ").encode('utf-8'))
+    # send my id
 
-    # Receive the result from the server
-    response = client.recv(1024).decode('utf-8')
-    print(f"Server response: {response}")
+    # ask user for 2 options  : STR or GET <TR_ID>
+    option = input ("Please choose 1 for STORE or 2 for GET")
+
+    if option == "1":
+        tr_id = send_file_data_and_get_transaction_id(server_socket)
+    elif option == "2":
+        get_and_store_file_data(server_socket)
+
 
     # Close the connection
-    client.close()
+    server_socket.close()
 
 if __name__ == "__main__":
-    request_math_result()
+    connect_to_server_and_store_info()
