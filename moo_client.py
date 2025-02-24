@@ -2,10 +2,12 @@ import socket
 from tools import *
 
 def send_file_data_and_get_transaction_id(server_socket):
+    server_socket.send("STR".encode())
     send_string_file(server_socket, "secret_data1.txt")
     print("received transaction_id", server_socket.recv(5).decode())
 
 def get_and_store_file_data(server_socket):
+    server_socket.send("GET".encode())
     pass
 
 # Function to send a math expression to the server and get the result

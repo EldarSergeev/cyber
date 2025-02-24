@@ -86,7 +86,7 @@ def handle_client(db, client_socket,client_address):
         for (id , client_ip , client_port, ddos_status , timestamp ) in all_clients:
             if ip == client_ip: # found our client
                 client_id = id
-                delete_row(db, "clients", "client_id", id )
+                delete_row(db, "clients", "client_id", str(id) )
                 insert_row(db, "clients",
                     "(client_id, ip, port, ddos_status, timestamp)",
                     "(%s, %s, %s, %s, %s)",
@@ -101,7 +101,7 @@ def handle_client(db, client_socket,client_address):
 
 
         if option == "STR":
-            data_size = int(client_socket.recv(10).decode())
+            data_size = int(client_socket.recv(15).decode())
             all_transactions = get_all_rows(db, "transactions")
             if len(all_transactions) == 0:
                 transaction_id = 1
@@ -140,7 +140,7 @@ def initialize_db():
     create_table(db, "clients",
                  "(client_id INT, ip VARCHAR(255), port INT, ddos_status BOOL, timestamp VARCHAR(255) )")
     create_table(db, "transactions",
-                 "(primary_trans_id INT, secondary_trans_id INT client_id INT, timestamp VARCHAR(255), data_size INT, data VARCHAR(1024))")
+                 "(primary_trans_id INT, secondary_trans_id INT, client_id INT, timestamp VARCHAR(255), data_size INT, data VARCHAR(1024))")
     return db
 
 
