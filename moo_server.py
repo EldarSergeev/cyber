@@ -86,7 +86,7 @@ def handle_client(db, client_socket,client_address):
         for (id , client_ip , client_port, ddos_status , timestamp ) in all_clients:
             if ip == client_ip: # found our client
                 client_id = id
-                delete_row(db, "clients", "client_id", (id) )
+                delete_row(db, "clients", "client_id", (str(id) ))
                 insert_row(db, "clients",
                     "(client_id, ip, port, ddos_status, timestamp)",
                     "(%s, %s, %s, %s, %s)",
