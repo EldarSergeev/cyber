@@ -101,7 +101,7 @@ def handle_client(db, client_socket,client_address):
 
 
         if option == "STR":
-            data_size = int(client_socket.recv(1024).decode())
+            data_size = int(client_socket.recv(5).decode())
             all_transactions = get_all_rows(db, "transactions")
             if len(all_transactions) == 0:
                 transaction_id = 1
