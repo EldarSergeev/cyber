@@ -8,7 +8,13 @@ def send_file_data_and_get_transaction_id(server_socket):
 
 def get_and_store_file_data(server_socket):
     server_socket.send("GET".encode())
-    pass
+    with open("new_file","wb") as file:
+        print("Receiving data...")
+        data = server_socket.recv(1024)  # Receive the first chunk
+        while data:
+            file.write(data)
+            data = server_socket.recv(1024)
+    print("all data has been recived")
 
 # Function to send a math expression to the server and get the result
 def connect_to_server_and_store_info():

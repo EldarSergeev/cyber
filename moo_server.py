@@ -111,20 +111,25 @@ def handle_client(db, client_socket,client_address):
             while data_size >= 1024 :
                 chunk_id = chunk_id + 1
                 data = client_socket.recv(1024).decode()
-                insert_row(db, "transcations",
+                insert_row(db, "transactions",
                               "(primary_trans_id , secondary_trans_id , client_id , timestamp , data_size , data )",
                               "(%s, %s, %s, %s, %s, %s)",
                               (transaction_id, chunk_id, client_id, get_timstamp(), 1024, data))
             if data_size > 0 :
                 chunk_id = chunk_id +1
                 data = client_socket.recv(data_size).decode()
-                insert_row(db, "transcations",
+                insert_row(db, "transactions",
                               "(primary_trans_id , secondary_trans_id , client_id , timestamp , data_size , data )",
                               "(%s, %s, %s, %s, %s, %s)",
                               (transaction_id, chunk_id, client_id, get_timstamp(), data_size, data))
             client_socket.send(str(transaction_id).encode())
             
         elif option == "GET":
+            transaction_id=get_rows_from_table_with_value( db,"transactions","client_id",client_id)[0]
+            if not transaction_id:
+                print("")
+            chunk_id=0
+            data=get_rows_from_table_with_two_value(db)
             pass
         else :
             print ("Unsupported option ", option)
@@ -141,6 +146,7 @@ def initialize_db():
                  "(client_id INT, ip VARCHAR(255), port INT, ddos_status BOOL, timestamp VARCHAR(255) )")
     create_table(db, "transactions",
                  "(primary_trans_id INT, secondary_trans_id INT, client_id INT, timestamp VARCHAR(255), data_size INT, data VARCHAR(1024))")
+    print("created table")
     return db
 
 
