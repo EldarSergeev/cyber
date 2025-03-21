@@ -8,6 +8,8 @@ def send_file_data_and_get_transaction_id(server_socket):
 
 def get_and_store_file_data(server_socket):
     server_socket.send("GET".encode())
+    options=server_socket.recv(1024)
+    print("please select the file you want to get:"+options)
     with open("new_file","wb") as file:
         print("Receiving data...")
         data = server_socket.recv(1024)  # Receive the first chunk
