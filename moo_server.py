@@ -125,9 +125,17 @@ def handle_client(db, client_socket,client_address):
             client_socket.send(str(transaction_id).encode())
             
         elif option == "GET":
-            transaction_id=get_rows_from_table_with_value( db,"transactions","client_id",client_id)[0]
+            all_clients = get_all_rows(db, "transactions")
+            transaction_ids = []
+            for (primary_trans_id,secondary_trans_id , id , timestamp , data_size , data ) in all_clients:
+                    if client_id==id:
+                        transaction_ids.append(primary_trans_id)
+            client_socket.send((transaction_id).encode())
             if not transaction_id:
                 print("")
+
+
+            
             chunk_id=0
             data=get_rows_from_table_with_two_value(db)
             pass
