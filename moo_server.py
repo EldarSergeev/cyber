@@ -130,7 +130,7 @@ def handle_client(db, client_socket,client_address):
             for (primary_trans_id,secondary_trans_id , id , timestamp , data_size , data ) in all_clients:
                     if client_id==id:
                         transaction_ids.append(primary_trans_id)
-            client_socket.send((transaction_id).encode())
+            client_socket.send((transaction_ids).encode())
             if not transaction_id:
                 print("")
 
@@ -138,7 +138,7 @@ def handle_client(db, client_socket,client_address):
             
             chunk_id=0
             data=get_rows_from_table_with_two_value(db)
-            pass
+
         else :
             print ("Unsupported option ", option)
     finally:
