@@ -3,67 +3,8 @@ import threading
 import random
 from db_tools import *    
 from tools import *
+from encryption_lib import Encryption
 
-
-
-def id_stamp(mydb_db, client_socket,client_adress):
-    if get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1]):
-        if get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1])[3]==1:
-            client_socket.send(("your banned from the server connection termenaited").encode('utf-8'))
-        else:
-            return get_rows_from_table_with_two_value(mydb_db,"data_user","ip",client_adress[0],"port",client_adress[1])[0]
-    else:
-        id=random.randint(1, 10000)
-        while get_rows_from_table_with_value(mydb_db,"data_user","id",id):
-            id=random.randint(1, 10000)
-
-        insert_row(mydb_db, "data_user",
-                 "(id, ip, port ,Isblacklisted ,Connections_per_day )",
-                 "(%s, %s, %s, %s, %s )",
-                 (id, client_adress[0], client_adress[1] ,0 ,1 ))
-        return id 
-        
-
-
-#function to handle client reqests recives the client's socket and id
-def handle_client_request(client_socket,client_id):
-
-
-
-    #extracts the clients message from the socket
-    #if the message doesnt equal to "request" it checks for errors and inserets the message and clients info into the transections data table
-    if client_socket.recv().decode() !="STR":
-        try:
-            result = [c for c in client_socket.decode(1024) if c != ' ']
-            if len(result)>5:
-                raise Exception("your message is too long")
-        except Exception as e:
-            client_socket.send(f"Error in expression: {e}".encode('utf-8'))
-        finally:
-            client_socket.send(("enter the password for your message").encode('utf-8'))
-            password=client_socket.recv(1024).decode('utf-8')
-            insert_row(mydb_db, "transections",
-                 "(src_id, timeset, password, is_succeded ,trans_id ,char_1 ,char_2 ,char_3, char_4 ,char_5 )",
-                 "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                 (client_id, "", password, 0 ,0 ,result[0] ,result[1], result[2], result[3],result[4]  ))
-    else:
-        client_socket.send(("enter the password for your message").encode('utf-8'))
-        password=client_socket.recv(1024).decode('utf-8')
-        if get_rows_from_table_with_value(mydb_db,"transections","password",password):
-            update_value(mydb_db,"transections","trans_id",client_id,"password",password)
-            #need to add a function that stamps the time of transection and updates is
-            update_value(mydb_db,"transections","is_succeded",1,"password",password)  
-            chr1=get_rows_from_table_with_value(mydb_db,"transections","password",password)[5]
-            chr2=get_rows_from_table_with_value(mydb_db,"transections","password",password)[6]
-            chr3=get_rows_from_table_with_value(mydb_db,"transections","password",password)[7]
-            chr4=get_rows_from_table_with_value(mydb_db,"transections","password",password)[8]
-            chr5=get_rows_from_table_with_value(mydb_db,"transections","password",password)[9]
-            message=chr1+chr2+chr3+chr4+chr5
-
-
-            client_socket.send(message)
-        else:
-            client_socket.send(("wrong password try again").encode('utf-8'))
 
 
 
