@@ -144,10 +144,9 @@ def handle_client(db, client_socket,client_address):
 
 
             if data_size>0:
-                chunk_id+=1
-                data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",chunk_id,"primary_trans_id",selected_id)[6]
+                data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][5]
                 client_socket.send(data.encode())
-                
+                chunk_id+=1
 
 
 
