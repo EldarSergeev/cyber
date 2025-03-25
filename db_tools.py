@@ -131,7 +131,7 @@ def get_rows_from_table_with_two_value(mydb, tableName, columnName, columnValue,
     mycursor = mydb.cursor()
     tables = show_tables(mydb)
     if tableName in tables:
-        sql = "SELECT * FROM " + tableName + " WHERE "+ columnName + " =  '" + columnValue + "AND"+ secondcolumnName + " =  '" + secondcolumnValue + "'"
+        sql = "SELECT * FROM " + tableName + " WHERE " + columnName + " = '" + columnValue + "' AND " + secondcolumnName + " = '" + secondcolumnValue + "'"
         print(sql)
         mycursor.execute(sql)
         myresult = mycursor.fetchall()
