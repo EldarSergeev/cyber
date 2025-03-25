@@ -135,10 +135,10 @@ def handle_client(db, client_socket,client_address):
                 print("")
             selected_id=int(client_socket.recv(1024).decode())
             chunk_id=1
-            data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[5]
-            while data_size>=1024:
-                data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",chunk_id,"primary_trans_id",selected_id)[6]
-                data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",chunk_id,"primary_trans_id",selected_id)[5]
+            data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
+            while int(data_size) >= 1024:
+                data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][5]
+                data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
                 client_socket.send(data.encode())
                 chunk_id+=1
 
