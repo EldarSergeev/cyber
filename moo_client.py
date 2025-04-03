@@ -1,22 +1,35 @@
 import socket
 from tools import *
+from encryption_lib import Encryption
+
+
+
+
 
 def send_file_data_and_get_transaction_id(server_socket):
-    server_socket.send("STR".encode())
-    send_string_file(server_socket, "secret_data1.txt")
-    print("received transaction_id", server_socket.recv(5).decode())
+    encrypted_start = eObj.encrypt_data("STR", server_public_key)  
+    print ("encrypted:", encrypted_start)
+    server_socket.send(encrypted_start)
+    send_string_file(server_socket, "secret_data1.txt",eObj, server_public_key, client_private_key)
+    encrypted_transaction_id = server_socket.recv(256)  # Adjust buffer size
+    transaction_id = eObj.decrypt_data(encrypted_transaction_id, client_private_key)
+    print("Received transaction ID:", transaction_id)
 
 def get_and_store_file_data(server_socket):
-    server_socket.send("GET".encode())
-    options=server_socket.recv(1024).decode()
+    encrypted_get = eObj.encrypt_data("GET", server_public_key)
+    server_socket.send(encrypted_get)
+    encrypted_options = server_socket.recv(256)
+    options = eObj.decrypt_data(encrypted_options, client_private_key)
     selected_option=input("please select the file you want to get:"+options)
-    server_socket.send(selected_option.encode())
-    with open("new_file","wb") as file:
+    encrypted_selection = eObj.encrypt_data(selected_option, server_public_key)
+    server_socket.send(encrypted_selection)
+    with open("new_file","w") as file:
         print("Receiving data...")
-        data = server_socket.recv(1024)  # Receive the first chunk
-        while data:
-            file.write(data)
-            data = server_socket.recv(1024)
+        encrypted_data = server_socket.recv(256)
+        while encrypted_data:
+            decrypted_data = eObj.decrypt_data(encrypted_data, client_private_key)
+            file.write(decrypted_data) 
+            encrypted_data = server_socket.recv(256)
     print("all data has been recived")
 
 # Function to send a math expression to the server and get the result
@@ -39,4 +52,7 @@ def connect_to_server_and_store_info():
     server_socket.close()
 
 if __name__ == "__main__":
+    eObj = Encryption()
+    server_public_key = eObj.load_server_public_key()
+    client_private_key = eObj.load_client_private_key()
     connect_to_server_and_store_info()

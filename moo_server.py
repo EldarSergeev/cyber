@@ -5,21 +5,12 @@ from db_tools import *
 from tools import *
 from encryption_lib import Encryption
 
-
-
-
-
-
-
-
-
-
-
 # Function to handle client communication
 def handle_client(db, client_socket,client_address):
     try:
         # receive option STR/GET
-        option = client_socket.recv(4).decode()
+        encrypted_option = client_socket.recv(256)
+        option = eObj.decrypt_data(encrypted_option, server_private_key)
         (ip, port) = client_address
         all_clients = get_all_rows(db, "clients")
         # for now client is identified by ip only
@@ -42,51 +33,63 @@ def handle_client(db, client_socket,client_address):
 
 
         if option == "STR":
-            data_size = int(client_socket.recv(2).decode())
+            encrypted_data_size = client_socket.recv(256)
+            data_size = int(eObj.decrypt_data(encrypted_data_size, server_private_key))
             all_transactions = get_all_rows(db, "transactions")
             if len(all_transactions) == 0:
                 transaction_id = 1
             else:
                 transaction_id = all_transactions[-1][0] + 1
             chunk_id = 0
-            while data_size >= 1024 :
+            while data_size >= 245 :
                 chunk_id = chunk_id + 1
-                data = client_socket.recv(1024).decode()
+                encrypted_data = client_socket.recv(256)
+                data = eObj.decrypt_data(encrypted_data, server_private_key)
                 insert_row(db, "transactions",
                               "(primary_trans_id , secondary_trans_id , client_id , timestamp , data_size , data )",
                               "(%s, %s, %s, %s, %s, %s)",
                               (transaction_id, chunk_id, client_id, get_timstamp(), 1024, data))
+                data_size-=245
             if data_size > 0 :
                 chunk_id = chunk_id +1
-                data = client_socket.recv(data_size).decode()
+                encrypted_data = client_socket.recv(256)
+                data = eObj.decrypt_data(encrypted_data, server_private_key)
                 insert_row(db, "transactions",
                               "(primary_trans_id , secondary_trans_id , client_id , timestamp , data_size , data )",
                               "(%s, %s, %s, %s, %s, %s)",
                               (transaction_id, chunk_id, client_id, get_timstamp(), data_size, data))
-            client_socket.send(str(transaction_id).encode())
-            
+            encrypted_transaction_id = eObj.encrypt_data(str(transaction_id), client_public_key)
+            print("tr_id:", encrypted_transaction_id)
+            client_socket.send(encrypted_transaction_id)
         elif option == "GET":
             all_clients = get_all_rows(db, "transactions")
             transaction_ids = []
             for (primary_trans_id,secondary_trans_id , id , timestamp , data_size , data ) in all_clients:
                     if client_id==id:
                         transaction_ids.append(primary_trans_id)
-            client_socket.send(str(transaction_ids).encode())
+            encrypted_transaction_ids=eObj.encrypt_data(str(transaction_ids), client_public_key)
+            client_socket.send(encrypted_transaction_ids)
             if not transaction_ids:
                 print("")
-            selected_id=int(client_socket.recv(1024).decode())
+            encrypted_data = client_socket.recv(256)
+            data = eObj.decrypt_data(encrypted_data, server_private_key)
+            selected_id=int(data)
             chunk_id=1
             data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
-            while int(data_size) >= 1024:
+            while int(data_size) >= 245:
                 data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][5]
                 data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
-                client_socket.send(data.encode())
+                encrypted_data = eObj.encrypt_data(data, client_public_key)
+                print("encrypted data is:",encrypted_data)
+                client_socket.send(encrypted_data)
                 chunk_id+=1
 
 
             if data_size>0:
                 data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][5]
-                client_socket.send(data.encode())
+                encrypted_data = eObj.encrypt_data(data, client_public_key)
+                client_socket.send(encrypted_data)
+                data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
                 chunk_id+=1
 
 
@@ -134,5 +137,9 @@ class Server:
             client_handler.start()
 
 if __name__ == "__main__":
+        
+    eObj = Encryption()
+    server_private_key = eObj.load_server_private_key()
+    client_public_key = eObj.load_client_public_key()
     s = Server()
     s.start_server()

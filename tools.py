@@ -1,6 +1,12 @@
 import datetime
 import os
+from encryption_lib import Encryption
 
+'''
+eObj = Encryption()
+server_public_key = encryption.load_server_public_key()
+client_private_key = encryption.load_client_private_key()
+'''
 def get_timstamp():
     current_datetime = datetime.datetime.now()
     result = current_datetime.timestamp()
@@ -32,20 +38,23 @@ def get_size_of_pic(pic_path) :
 
 
 # send picture 
-def send_string_file(mysocket, file_path):
+def send_string_file(mysocket, file_path, eObj, server_public_key, client_priv_key):
     # send size of picture
     size = get_size_of_pic(file_path)
-    mysocket.send(str(size).encode())
+    encrypted_size=eObj.encrypt_data(str(size), server_public_key)
+    mysocket.send(encrypted_size)
     
     # open and read picture
     with open(file_path, 'r') as file:
         total = 0
         # send "chunks"b
-        while total + 1024 < size:
-            chunk = file.read(1024)
-            mysocket.send(chunk.encode())
-            total = total + 1024
+        while total + 245 < size:
+            chunk = file.read(245)
+            enc_chunk = eObj.encrypt_data(str(chunk), server_public_key)
+            mysocket.send(enc_chunk)
+            total = total + 245
         # send "tail"
         if (total < size):
             data = file.read(size - total)
-            mysocket.send(data.encode())
+            enc_chunk = eObj.encrypt_data(str(data), server_public_key)
+            mysocket.send(enc_chunk)
