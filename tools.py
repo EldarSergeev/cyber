@@ -45,16 +45,16 @@ def send_string_file(mysocket, file_path, eObj, server_public_key, client_priv_k
     mysocket.send(encrypted_size)
     
     # open and read picture
-    with open(file_path, 'r') as file:
+    with open(file_path, 'rb') as file:
         total = 0
         # send "chunks"b
         while total + 245 < size:
             chunk = file.read(245)
-            enc_chunk = eObj.encrypt_data(str(chunk), server_public_key)
+            enc_chunk = eObj.encrypt_data((chunk).decode('latin1'), server_public_key)
             mysocket.send(enc_chunk)
             total = total + 245
         # send "tail"
         if (total < size):
-            data = file.read(size - total)
-            enc_chunk = eObj.encrypt_data(str(data), server_public_key)
+            data = file.read(245)
+            enc_chunk = eObj.encrypt_data((data).decode('latin1'), server_public_key)
             mysocket.send(enc_chunk)
