@@ -79,6 +79,7 @@ def handle_client(db, client_socket,client_address):
             while int(data_size) >= 245:
                 data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][5]
                 data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
+                print(data)
                 encrypted_data = eObj.encrypt_data(data, client_public_key)
                 print("encrypted data is:",encrypted_data)
                 client_socket.send(encrypted_data)
@@ -87,6 +88,7 @@ def handle_client(db, client_socket,client_address):
 
             if data_size>0:
                 data=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][5]
+                print(data)
                 encrypted_data = eObj.encrypt_data(data, client_public_key)
                 client_socket.send(encrypted_data)
                 data_size=get_rows_from_table_with_two_value(db,"transactions","secondary_trans_id",str(chunk_id),"primary_trans_id",str(selected_id))[0][4]
