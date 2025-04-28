@@ -4,7 +4,16 @@ import random
 from db_tools import *    
 from tools import *
 from encryption_lib import Encryption
+from server_UI import TransactionViewer
+import tkinter as tk
+from tkinter import ttk
 
+
+
+def start_ui():
+    root = tk.Tk()
+    viewer = TransactionViewer(root)
+    root.mainloop()
 # Function to handle client communication
 def handle_client(db, client_socket,client_address):
     try:
@@ -140,8 +149,15 @@ class Server:
 
 if __name__ == "__main__":
         
+
+
+
+
     eObj = Encryption()
     server_private_key = eObj.load_server_private_key()
     client_public_key = eObj.load_client_public_key()
+    ui_starter=threading.Thread(target=start_ui, args=())
+    ui_starter.start()
     s = Server()
     s.start_server()
+    

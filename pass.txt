@@ -1,1 +1,7 @@
 MooProject24
+
+
+
+
+
+        columns = [f"Column {i+1}" for i in range(len(sample_data[0]))] if sample_data else ["No Data"]
