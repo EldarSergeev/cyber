@@ -4,6 +4,8 @@ from db_tools import *
 from playsound import playsound
 from PIL import Image, ImageTk
 import threading
+import pygame
+
 
 
 
@@ -106,8 +108,9 @@ class TransactionViewer:
         self.root.after(5000, self.schedule_refresh) 
     
     def background_music(self):
-        playsound('elevator_music.wav')
-
+        pygame.mixer.init()
+        pygame.mixer.music.load('elevator_music.wav')  # or .mp3 if you want
+        pygame.mixer.music.play(loops=-1)
 if __name__ == "__main__":
     root = tk.Tk()
     viewer = TransactionViewer(root)
