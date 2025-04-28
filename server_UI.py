@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 from db_tools import * 
+from playsound import playsound
+
+
 class TransactionViewer:
     def __init__(self, root):
         self.root = root
@@ -15,6 +18,10 @@ class TransactionViewer:
         self.clients_frame = tk.LabelFrame(root, text="Clients", padx=10, pady=10)
         self.clients_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
+
+
+
+        playsound('1.mp3')
         try:
             self.transactions_tree = self.create_table(self.transactions_frame, "transactions")
         except Exception as e:
@@ -74,7 +81,7 @@ class TransactionViewer:
             self.refresh_table(self.transactions_tree, "transactions")
         if self.clients_tree:
             self.refresh_table(self.clients_tree, "clients")
-        self.root.after(5000, self.schedule_refresh)  
+        self.root.after(5000, self.schedule_refresh) 
 
 if __name__ == "__main__":
     root = tk.Tk()
