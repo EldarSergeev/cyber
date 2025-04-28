@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from db_tools import * 
 from playsound import playsound
+import threading
+
 
 
 class TransactionViewer:
@@ -17,13 +19,15 @@ class TransactionViewer:
 
         self.clients_frame = tk.LabelFrame(root, text="Clients", padx=10, pady=10)
         self.clients_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        
 
+        background_thread = threading.Thread(target=self.background_music, daemon=True)
+        background_thread.start()
+        
 
-
-
-        playsound('1.mp3')
         try:
             self.transactions_tree = self.create_table(self.transactions_frame, "transactions")
+            
         except Exception as e:
             print("Error creating transactions table:", e)
             self.transactions_tree = None
@@ -35,6 +39,7 @@ class TransactionViewer:
             self.clients_tree = None
 
         print("Init complete. Starting refresh loop...")
+        
         self.schedule_refresh()
 
     def get_all_rows(self, db, table):
@@ -82,6 +87,9 @@ class TransactionViewer:
         if self.clients_tree:
             self.refresh_table(self.clients_tree, "clients")
         self.root.after(5000, self.schedule_refresh) 
+    
+    def background_music(self):
+        playsound('elevator_music.mp3')
 
 if __name__ == "__main__":
     root = tk.Tk()
