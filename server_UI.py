@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from db_tools import * 
 from playsound import playsound
+from PIL import Image, ImageTk
 import threading
 
 
@@ -13,6 +14,11 @@ class TransactionViewer:
         self.root.geometry("1200x600")
         self.tls = self  
         self.db = init_with_db("mysql")
+
+        self.logo_frame = tk.Frame(root)
+        self.logo_frame.pack(pady=10)
+
+        self.display_logo()
 
         self.transactions_frame = tk.LabelFrame(root, text="Transactions", padx=10, pady=10)
         self.transactions_frame.pack(fill="both", expand=True, padx=10, pady=5)
@@ -41,6 +47,17 @@ class TransactionViewer:
         print("Init complete. Starting refresh loop...")
         
         self.schedule_refresh()
+
+
+
+    def display_logo(self):
+        # Load and display the image
+        image = Image.open("logo.jpg")  # Your uploaded file path
+        image = image.resize((200, 200))  # Resize if needed
+        self.logo_image = ImageTk.PhotoImage(image)
+        
+        logo_label = tk.Label(self.logo_frame, image=self.logo_image)
+        logo_label.pack()
 
     def get_all_rows(self, db, table):
         try:
@@ -89,7 +106,7 @@ class TransactionViewer:
         self.root.after(5000, self.schedule_refresh) 
     
     def background_music(self):
-        playsound('elevator_music.mp3')
+        playsound('elevator_music.wav')
 
 if __name__ == "__main__":
     root = tk.Tk()
