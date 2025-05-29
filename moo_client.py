@@ -1,6 +1,6 @@
 import socket
 from tools import *
-from encryption_lib import Encryption2
+from encryption_lib import Encryption
 
 
 
