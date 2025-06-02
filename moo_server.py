@@ -20,13 +20,6 @@ def start_ui():
 # Function to handle client communication
 def handle_client(db, client_socket,client_address):
     (ip, port) = client_address
-    for x in client_sockets:
-            for sock in client_sockets[ip]:
-                total +=len(sock)
-    if total>=20:
-        client_socket.close()
-
-
 
     if ip not in client_sockets:
         client_sockets[ip] = []
@@ -169,9 +162,28 @@ class Server:
         
         while True:
             # Accept new client connections
+
             client_socket, client_address = server.accept()
+            ip, _ = client_address
+
+            total_connections = sum(len(sockets) for sockets in client_sockets.values())
+            if total_connections >= 100:
+                print(f"Global connection limit reached. Dropping connection from {ip}")
+                client_socket.close()
+                continue
+            if ip in client_sockets and len(client_sockets[ip]) >= 20:
+                print(f"Too many connections from {ip}. Dropping.")
+                client_socket.close()
+                continue
+
+
+
+
+
+
+
+
             print(f"Connection from {client_address}")
-            
             # Create a new thread to handle the client request
             client_handler = threading.Thread(target=handle_client, args=(self.db, client_socket, client_address))
             client_handler.start()
