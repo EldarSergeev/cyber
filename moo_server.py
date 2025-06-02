@@ -20,16 +20,22 @@ def start_ui():
 # Function to handle client communication
 def handle_client(db, client_socket,client_address):
     (ip, port) = client_address
+    for x in client_sockets:
+            for sock in client_sockets[ip]:
+                total +=len(sock)
+    if total>=20:
+        client_socket.close()
+
+
 
     if ip not in client_sockets:
         client_sockets[ip] = []
     client_sockets[ip].append(client_socket)
     print(f"Stored socket for {ip}. Total sockets from this IP: {len(client_sockets[ip])}")
-
-
     try:
-        
+
         # receive option STR/GET
+        
         encrypted_option = client_socket.recv(256)
         option = eObj.decrypt_data(encrypted_option, server_private_key)
         (ip, port) = client_address
@@ -38,7 +44,7 @@ def handle_client(db, client_socket,client_address):
         client_id = -1
         for (id , client_ip , client_port, ddos_status , timestamp ) in all_clients:
             if ip == client_ip: # found our client
-                if get_rows_from_table_with_value(db,"clients","ip",ip)[3]==True:
+                if get_rows_from_table_with_value(db,"clients","ip",ip)[0][3]==True:
                     message="connection denied fuck you"
                     encrypted_message=eObj.encrypt_data(message, client_public_key)
                     client_socket.send(encrypted_message)
@@ -155,7 +161,7 @@ def initialize_db():
 class Server:
     def __init__(self):
         self.db =  initialize_db()
-    def start_server(self,  host='0.0.0.0', port=5555):
+    def start_server(self,  host='127.0.0.1', port=5555):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind((host, port))
         server.listen(5)

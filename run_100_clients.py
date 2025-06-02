@@ -6,7 +6,7 @@ def run_client():
 
 threads = []
 
-for i in range(1):
+for i in range(100):
     t = threading.Thread(target=run_client)
     threads.append(t)
     t.start()
