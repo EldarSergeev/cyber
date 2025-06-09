@@ -38,7 +38,7 @@ def handle_client(db, client_socket,client_address):
         for (id , client_ip , client_port, ddos_status , timestamp ) in all_clients:
             if ip == client_ip: # found our client
                 if get_rows_from_table_with_value(db,"clients","ip",ip)[0][3]==True:
-                    message="connection denied fuck you"
+                    message="connection denied dropping..."
                     encrypted_message=eObj.encrypt_data(message, client_public_key)
                     client_socket.send(encrypted_message)
                     client_socket.close()
@@ -166,12 +166,16 @@ class Server:
             client_socket, client_address = server.accept()
             ip, _ = client_address
 
+            if get_rows_from_table_with_value(self.db,"clients","ip",ip)[0][3]==True:
+                print(f"This ip is blacklisted. Dropping connection from {ip}")
+
             total_connections = sum(len(sockets) for sockets in client_sockets.values())
-            if total_connections >= 100:
+            if total_connections >= 30:
                 print(f"Global connection limit reached. Dropping connection from {ip}")
                 client_socket.close()
                 continue
-            if ip in client_sockets and len(client_sockets[ip]) >= 20:
+            if ip in client_sockets and len(client_sockets[ip]) >= 15:
+                update_value(self.db,"clients","ddos_status",True,"ip",ip)
                 print(f"Too many connections from {ip}. Dropping.")
                 client_socket.close()
                 continue
